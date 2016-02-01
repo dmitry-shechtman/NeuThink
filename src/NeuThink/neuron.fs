@@ -154,9 +154,9 @@ module Neuron =
         //distribute berror for layers below
       for layer = maxlevel - 1  downto 0 do
        let indexes = get_all_level_layers  layer
-       let mutable offset = 0
+       //let mutable offset = 0
        for index in indexes do
-        let connected_above = layers.[index].Connections
+        //let connected_above = layers.[index].Connections
      //   let p = (berror_l.[connected_above.[0]].Length.ToString()) + " ----- " + (layers.[index].Size().ToString())
      //   Console.WriteLine(p)
       //  let berrorx = (Array.ofSeq connected_above) |> Array.map (fun i -> berror_l.[i]) |> Array.fold (fun a b -> Array.map2 (fun x y -> x+y) a b) (Array.zeroCreate (berror_l.[connected_above.[0]].Length))
@@ -236,7 +236,7 @@ module Neuron =
      ///Must be called after network structure configuration is finished
      ///before training or computing operations
      member this.FinalizeNet() =
-       let mutable index = 0
+       //let mutable index = 0
    
        for layer = maxlevel   downto 0 do
         let indexes = get_all_level_layers  layer
@@ -394,7 +394,7 @@ module Neuron =
         start_profile "total gradient"
         let output = this.Compute()
         let outgrad = Array.map2(fun y t -> y - t) output target_output
-        let start_l = prev_layer (-1)
+        //let start_l = prev_layer (-1)
         let p = compute_gradient_wide  outgrad
         end_profile "total gradient"
         p
@@ -430,7 +430,7 @@ module Neuron =
      member this.Batch_Gradient(inputs:IInputProvider) (outputs:IOutputProvider)  =
         start_profile("full batch")
         start_profile("grad_createx")
-        let new_gradient = Array.init (this.WeightsSize()) (fun x -> 0.0)
+        let new_gradient = Array.init (this.WeightsSize()) (fun _ -> 0.0)
         end_profile("grad_createx")
 
         let mutable new_error = 0.0
@@ -513,9 +513,9 @@ module Neuron =
      override this.SetInput(input: float array) =
       base.SetInput(input)
 
-     member this.Batch_gradient1 (inputs:IInputProvider) (outputs:IOutputProvider) (indexes:int array) =
+     member this.Batch_gradient1 (inputs:IInputProvider) (outputs:IOutputProvider) (_:int array) =
         start_profile("full batch")
-        let new_gradient = Array.init (this.WeightsSize()) (fun x -> 0.0)
+        let new_gradient = Array.init (this.WeightsSize()) (fun _ -> 0.0)
   
 
         let mutable new_error = 0.0
@@ -540,7 +540,7 @@ module Neuron =
       this.FlashInpState ()
       let mutable ind = cur_index
  
-      let mutable new_error = 0.0
+      //let mutable new_error = 0.0
   
       while (ind < indexes.Length) && (indexes.[ind] <> 0 || cur_index = ind) do
       // Console.WriteLine(ind)
@@ -548,20 +548,20 @@ module Neuron =
   
        this.setStep buffer_ind
        this.SetInput (inputs.[ind])
-       let data = this.Compute()
+       //let data = this.Compute()
   
        ind <- ind + 1
       end_profile("forward pass")
       ((ind),cur_index)
 
      abstract member bptt_gradient_zero : IOutputProvider -> IInputProvider -> int -> int -> float array
-     default this.bptt_gradient_zero (outputs:IOutputProvider) (inputs:IInputProvider) (cur_index:int) (start_index:int) =
-        let pass_grad =  Array.init (this.WeightsSize()) (fun x -> 0.0)
+     default this.bptt_gradient_zero (outputs:IOutputProvider) (_:IInputProvider) (cur_index:int) (start_index:int) =
+        let pass_grad =  Array.init (this.WeightsSize()) (fun _ -> 0.0)
         for i = (cur_index) downto start_index do
          let buffer_ind = i - start_index
     
          this.setStep buffer_ind
-         let grad = this.ComputeGradientBptt (outputs.[i]) ([|for i in {0..outputs.[i].Length-1} -> 0.0|])
+         let grad = this.ComputeGradientBptt (outputs.[i]) ([|for _ in {0..outputs.[i].Length-1} -> 0.0|])
 
          for j = 0 to grad.Length - 1  do
           pass_grad.[j] <- pass_grad.[j] + grad.[j]
@@ -570,9 +570,9 @@ module Neuron =
  
  
      abstract member bptt_Gradient: IOutputProvider -> IInputProvider -> int -> int -> float array
-     default this.bptt_Gradient(outputs:IOutputProvider) (inputs:IInputProvider) (cur_index:int) (start_index:int) =
+     default this.bptt_Gradient(outputs:IOutputProvider) (_:IInputProvider) (cur_index:int) (start_index:int) =
         start_profile "BATCH GRAD BPTT"
-        let pass_grad =  Array.init (this.WeightsSize()) (fun x -> 0.0)
+        let pass_grad =  Array.init (this.WeightsSize()) (fun _ -> 0.0)
         end_profile "BATCH GRAD BPTT"
     
         for i = (cur_index) downto start_index do
@@ -603,7 +603,7 @@ module Neuron =
 
      member this.Batch_gradient_bptt (inputs:IInputProvider) (outputs:IOutputProvider) (indexes:int array) =
     
-        let new_gradient= Array.init (this.WeightsSize()) (fun x -> 0.0)
+        let new_gradient= Array.init (this.WeightsSize()) (fun _ -> 0.0)
     
 
         let mutable new_error = 0.0
@@ -635,7 +635,7 @@ module Neuron =
      interface ITrainableNetwork with 
       member this.ForwardPass inputs indexes i = this.ForwardPass  inputs indexes i
       member this.ComputeErrorVal outputs start over = this.ComputeErrorVal outputs start over
-      member this.AllGradient outputs  inputs indexes start over = this.bptt_Gradient outputs inputs start over 
+      member this.AllGradient outputs  inputs _ start over = this.bptt_Gradient outputs inputs start over 
       member this.BatchGradient inputs outputs indexes = this.Batch_gradient_bptt  inputs outputs indexes
       member this.Save filename = this.Save filename
       member this.setWeight i x = this.setWeight i x
@@ -653,7 +653,7 @@ module Neuron =
      override this.ForwardPass  (inputs:IInputProvider) (indexes:int array) (cur_index:int) =
       let mutable ind = cur_index
  
-      let mutable new_error = 0.0
+      //let mutable new_error = 0.0
   
       //find end index
       while (ind < indexes.Length) && (indexes.[ind] <> 0 || cur_index = ind) do
@@ -665,11 +665,11 @@ module Neuron =
       let mutable inc = 0
       while (ind > -1) && (ind <> (cur_index - 1) || over = ind) do
       // Console.WriteLine(ind)
-       let buffer_ind = ind - cur_index
+       //let buffer_ind = ind - cur_index
   
        this.setStep inc
        this.SetInput (inputs.[ind])
-       let data = this.Compute()
+       //let data = this.Compute()
    
        ind <- ind - 1
        inc <- inc + 1
@@ -677,7 +677,7 @@ module Neuron =
       ((over + 1),cur_index)
 
      override this.bptt_Gradient(outputs:IOutputProvider) (inputs:IInputProvider) (cur_index:int) (start_index:int) =
-        let pass_grad =  Array.init (this.WeightsSize()) (fun x -> 0.0)
+        let pass_grad =  Array.init (this.WeightsSize()) (fun _ -> 0.0)
         for i = start_index to cur_index do
         // Console.WriteLine(i)
          let buffer_ind = i - start_index
@@ -693,7 +693,7 @@ module Neuron =
         pass_grad
     
      override this.bptt_gradient_zero (outputs:IOutputProvider) (inputs:IInputProvider) (cur_index:int) (start_index:int) =
-        let pass_grad =  Array.init (this.WeightsSize()) (fun x -> 0.0)
+        let pass_grad =  Array.init (this.WeightsSize()) (fun _ -> 0.0)
         for i = start_index to cur_index do
         // Console.WriteLine(i)
          let buffer_ind = cur_index - (i - start_index)
@@ -703,7 +703,7 @@ module Neuron =
          this.SetInput(inputs.[i])
      
    
-         let grad = this.ComputeGradientBptt (outputs.[i]) (([|for i in {0..outputs.[i].Length-1} -> 0.0|]))
+         let grad = this.ComputeGradientBptt (outputs.[i]) (([|for _ in {0..outputs.[i].Length-1} -> 0.0|]))
          for j = 0 to grad.Length - 1  do
           pass_grad.[j] <- pass_grad.[j] + grad.[j]
         pass_grad 
@@ -711,8 +711,8 @@ module Neuron =
 
     type RCNN(context_size:int,input_size:int,output_size:int) =
      let mutable forward_buffer = [|[|0.0|];[|0.0|]|]
-     let mutable output_buffer = [|[|0.0|];[|0.0|]|]
-     let mutable backprop_buffer = [|[|0.0|];[|0.0|]|]
+     //let mutable output_buffer = [|[|0.0|];[|0.0|]|]
+     //let mutable backprop_buffer = [|[|0.0|];[|0.0|]|]
      let  mutable convnet_buffer = [|0.0|]
      let cnn_output_size = 16
 
@@ -862,8 +862,8 @@ module Neuron =
         convnet.UpdateWeight (i-recurrent_net.WeightsSize()) delta
     
      
-     member this.condense_input (inputs:IInputProvider) (indexes:int array) (cur_index:int)=
-      let mutable ind = cur_index
+     member this.condense_input (inputs:IInputProvider) (_:int array) (cur_index:int)=
+      //let mutable ind = cur_index
       //Console.WriteLine(inputs.[cur_index].Length)
       let z = inputs.[cur_index].[input_size..]
       convnet_buffer <- z
@@ -882,7 +882,7 @@ module Neuron =
      member this.run_recnet (inputs:IInputProvider) (indexes:int array) (start:int) (addin:float array) =
       let mutable ind = start
  
-      let mutable new_error = 0.0
+      //let mutable new_error = 0.0
   
       while (ind < indexes.Length) && (indexes.[ind] <> 0 || start = ind) do
       // Console.WriteLine(ind)
@@ -908,7 +908,7 @@ module Neuron =
  
      member this.ForwardPass (inputs:IInputProvider) (indexes:int array) (start:int) =
    
-       this.Forward_buffer <- Array.init 250 (fun x -> Array.init output_size (fun i -> 0.0))
+       this.Forward_buffer <- Array.init 250 (fun _ -> Array.init output_size (fun _ -> 0.0))
    
        //compute convnet input
        let full_data = this.condense_input inputs indexes start  
@@ -956,9 +956,9 @@ module Neuron =
        for i = 0 to weights.Length - 1 do
         (this.setWeight i (weights.[i]))  
   
-     member this.RCNN_Gradient(inputs:IInputProvider) (outputs:IOutputProvider)  (indexes:int array) (over:int) (start:int) =
+     member this.RCNN_Gradient(_:IInputProvider) (outputs:IOutputProvider)  (_:int array) (over:int) (start:int) =
     
-        let total_gradient= Array.init (this.WeightsSize())  (fun x -> 0.0)   
+        let total_gradient= Array.init (this.WeightsSize())  (fun _ -> 0.0)   
     
 
 
@@ -980,7 +980,7 @@ module Neuron =
         // Console.WriteLine("ZZ")
         // Console.WriteLine(berrori.Length)
         // Console.WriteLine("berr" + (berrori.[2].ToString()))
-         let conv_grad = convnet.ComputeGradientBptt berrori (([|for j in {0..berrori.Length-1} -> 0.0|]))     
+         let conv_grad = convnet.ComputeGradientBptt berrori (([|for _ in {0..berrori.Length-1} -> 0.0|]))     
      
          for j = 0 to grad.Length - 1 do
           total_gradient.[j] <- total_gradient.[j] + grad.[j] 
@@ -993,7 +993,7 @@ module Neuron =
     
      member this.Batch_gradient_bptt (inputs:IInputProvider) (outputs:IOutputProvider) (indexes:int array) =
     
-        let new_gradient= Array.init (this.WeightsSize()) (fun x -> 0.0)
+        let new_gradient= Array.init (this.WeightsSize()) (fun _ -> 0.0)
     
 
         let mutable new_error = 0.0
@@ -1055,7 +1055,7 @@ module Neuron =
     
     type BRNN_Elman(context_size:int,input_size:int,output_size:int,dropout:bool) = 
      let mutable forward_buffer = [|[|0.0|];[|0.0|]|]
-     let mutable output_buffer = [|[|0.0|];[|0.0|]|]
+     //let mutable output_buffer = [|[|0.0|];[|0.0|]|]
      let mutable backprop_buffer = [|[|0.0|];[|0.0|]|]
 
      let forward_net =
@@ -1199,9 +1199,9 @@ module Neuron =
    
        let over,start = forward_net.ForwardPass inputs indexes start
  
-       let over1,start1 = backward_net.ForwardPass  inputs indexes start
+       //let over1,start1 = backward_net.ForwardPass  inputs indexes start
  
-       this.Forward_buffer <- Array.init 250 (fun x -> Array.init output_size (fun i -> 0.0))
+       this.Forward_buffer <- Array.init 250 (fun _ -> Array.init output_size (fun _ -> 0.0))
    
        for i=start to (over - 1) do
         let buffer_ind = i-start
@@ -1230,13 +1230,13 @@ module Neuron =
      member this.BatchError (inputs:IInputProvider) (outputs:IOutputProvider)  (indexes:int array)  =
       this.full_dataset_eval inputs outputs indexes
   
-     member this.BRNN_Gradient(inputs:IInputProvider) (outputs:IOutputProvider)  (indexes:int array) (over:int) (start:int) =
+     member this.BRNN_Gradient(inputs:IInputProvider) (outputs:IOutputProvider)  (_:int array) (over:int) (start:int) =
         start_profile("buuffer")
-        backprop_buffer <- Array.init 250 (fun x -> Array.init (context_size*2) (fun i -> 0.0))
+        backprop_buffer <- Array.init 250 (fun _ -> Array.init (context_size*2) (fun _ -> 0.0))
         end_profile("buuffer")
         //evalute top layers
         //Console.WriteLine("init")
-        let top_grad_sum = Array.init (top_network.WeightsSize()) (fun x -> 0.0)
+        let top_grad_sum = Array.init (top_network.WeightsSize()) (fun _ -> 0.0)
         for i = start to over do
 
          //top_network.SetInput(Array.append (forward_net.Forward_buffer (i-start)) (backward_net.Forward_buffer (i-start)))
@@ -1319,7 +1319,7 @@ module Neuron =
    
      member this.Batch_gradient_bptt (inputs:IInputProvider) (outputs:IOutputProvider) (indexes:int array) =
     
-        let new_gradient= Array.init (this.WeightsSize()) (fun x -> 0.0)
+        let new_gradient= Array.init (this.WeightsSize()) (fun _ -> 0.0)
     
 
         let mutable new_error = 0.0

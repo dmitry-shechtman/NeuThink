@@ -28,7 +28,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <DocumentationFile>.\bin\Debug\NeuThink.xml</DocumentationFile>
-    <OtherFlags>--warnon:1182</OtherFlags>
+    <OtherFlags>--warnon:1182 --nowarn:9</OtherFlags>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>

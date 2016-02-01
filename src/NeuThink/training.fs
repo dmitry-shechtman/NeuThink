@@ -220,7 +220,7 @@ module NeuronTraining =
       //let mutable lr = 0.00015
       //let mutable clip = 0.0001
       let mutable lr = if start_alpha > 0.0 then start_alpha else 0.0015
-      let weights = Array.init (network.WeightsSize()) (fun x ->  0.0000000001)
+      let weights = Array.init (network.WeightsSize()) (fun _ ->  0.0000000001)
       //one SGD PASS
 
       for j = 0 to num_iters do
@@ -293,8 +293,8 @@ module NeuronTraining =
 
     let RPROP  num_iters (network: ITrainableNetwork) (inputs:IInputProvider) (outputs:IOutputProvider) (indexes:int array)  (start_alpha:float) (callback : (ITrainableNetwork -> unit) option)  =
      Console.WriteLine  network.WeightsSize
-     let start_alphas = Array.init  (network.WeightsSize()) (fun x -> start_alpha)
-     let prev_gradient=  Array.init  (network.WeightsSize()) (fun x -> 0.0)
+     let start_alphas = Array.init  (network.WeightsSize()) (fun _ -> start_alpha)
+     let prev_gradient=  Array.init  (network.WeightsSize()) (fun _ -> 0.0)
      let dMax = 50.0
      let dMin = 0.000001
      let nplus = 1.2

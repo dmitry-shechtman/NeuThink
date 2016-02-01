@@ -4,13 +4,13 @@ module Native =
  open System.Runtime.InteropServices
  open Microsoft.FSharp.NativeInterop 
 
- let buffer = Array.init 500 (fun i -> 0.0) 
+ let buffer = Array.init 500 (fun _ -> 0.0) 
 
  [<System.Runtime.InteropServices.DllImport(@"native_func.dll",EntryPoint="vectmat")>]
- extern void vectmat(double *proc_inputs,double *weights,double *outputs,int psize,int wsize,int osize)  
+ extern void vectmat(double *, double *, double *, int, int, int)  
 
  [<System.Runtime.InteropServices.DllImport(@"libacml_mp_dll.dll",EntryPoint="dgemv")>]
- extern void dgemv(char transa, int m, int n, double alpha, double *a, int lda, double *x, int incx, double beta, double *y, int incy);
+ extern void dgemv(char, int, int, double, double *, int, double *, int, double, double *, int);
 
 
  let inline (~~) (data : GCHandle) = data.AddrOfPinnedObject()

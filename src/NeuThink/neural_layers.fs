@@ -37,39 +37,39 @@ module NeuralLayers =
     let private convolve (signal:float array) (filter:float array) (signal_x:int,signal_y:int) (filter_x:int,filter_y:int) (stride:int)=
       let outputs_size_x =(signal_x / stride) - ((filter_x / stride) - 1)
       let outputs_size_y =(signal_y / stride) - ((filter_y / stride) - 1)
-      let outputs = Array.init (outputs_size_x*outputs_size_y ) (fun x -> 0.0)
+      let outputs = Array.init (outputs_size_x*outputs_size_y ) (fun _ -> 0.0)
       let mutable kx = 0.0
       for i = 0 to outputs_size_y - 1 do
        for j = 0 to outputs_size_x - 1 do
         kx <- 0.0
         for i_f = 0 to filter_y - 1 do
          for j_f = 0 to filter_x - 1 do
-          let fs = two2one (j+j_f) (i+i_f) signal_x
+          //let fs = two2one (j+j_f) (i+i_f) signal_x
           kx <- kx + filter.[two2one j_f i_f filter_x] * signal.[two2one (j+j_f) (i+i_f) signal_x]
-        let p = (two2one j i outputs_size_x)
+        //let p = (two2one j i outputs_size_x)
         outputs.[(two2one j i outputs_size_x)] <- kx
       outputs 
    
     let private inv_convolve (signal:float array) (filter:float array) (signal_x:int,signal_y:int) (filter_x:int,filter_y:int) (stride:int)=
       let outputs_size_x =(signal_x / stride) - ((filter_x / stride) - 1)
       let outputs_size_y =(signal_y / stride) - ((filter_y / stride) - 1)
-      let outputs = Array.init (outputs_size_x*outputs_size_y ) (fun x -> 0.0)
+      let outputs = Array.init (outputs_size_x*outputs_size_y ) (fun _ -> 0.0)
       let mutable kx = 0.0
       for i = 0 to outputs_size_y - 1 do
        for j = 0 to outputs_size_x - 1 do
         kx <- 0.0
         for i_f = 0 to filter_y - 1 do
          for j_f = 0 to filter_x - 1 do
-          let fs = two2one (j+j_f) (i+i_f) signal_x
+          //let fs = two2one (j+j_f) (i+i_f) signal_x
           kx <- kx + filter.[two2one (filter_x - j_f) (filter_y - i_f) filter_x] * signal.[two2one (j+j_f) (i+i_f) signal_x]
-        let p = (two2one j i outputs_size_x)
+        //let p = (two2one j i outputs_size_x)
         outputs.[(two2one j i outputs_size_x)] <- kx
       outputs 
    
     let private conv_grad (input:float array) (error:float array) (input_x,input_y) (filter_x,filter_y) (stride:int) =
         let outputs_size_x =(input_x / stride) - ((filter_x / stride) - 1)
         let outputs_size_y =(input_y / stride) - ((filter_y / stride) - 1)
-        let result_grad = Array.init (filter_x*filter_y) (fun x -> 0.0)
+        let result_grad = Array.init (filter_x*filter_y) (fun _ -> 0.0)
         for i = 0 to outputs_size_y - 1 do
          for j = 0 to outputs_size_x - 1 do 
            let cur_error =   error.[(two2one j i outputs_size_x)] 
@@ -89,7 +89,7 @@ module NeuralLayers =
     type NeuralLayer(ninputs:int,noutputs:int) =
 
      let mutable connected_with = 0
-     let last_result =  Array.init noutputs (fun i -> 0.0)
+     let last_result =  Array.init noutputs (fun _ -> 0.0)
      let connections = new ResizeArray<int>()
      let mutable last_input_index = 0
      let mutable level = 0
@@ -143,10 +143,10 @@ module NeuralLayers =
     ///Implements dropout regularization
     type DropoutLayer(ninputs:int,noutputs:int,droprate:int) =
      inherit  NeuralLayer(ninputs,noutputs)
-     let inputs =     Array.init 440 (fun i -> Array.init ninputs (fun x -> 0.0))
-     let outputs =  Array.init 440 (fun i -> Array.init noutputs (fun x -> 0.0))
-     let drop_pattern = Array.init 440 (fun i -> Array.init noutputs (fun x -> 0.0)) 
-     let berror_buffer = Array.init ninputs (fun x -> 0.0)
+     let inputs =     Array.init 440 (fun _ -> Array.init ninputs (fun _ -> 0.0))
+     let outputs =  Array.init 440 (fun _ -> Array.init noutputs (fun _ -> 0.0))
+     let drop_pattern = Array.init 440 (fun _ -> Array.init noutputs (fun _ -> 0.0)) 
+     let berror_buffer = Array.init ninputs (fun _ -> 0.0)
      let mutable cur_time = 0
 
      let multiplier =  (10.0 / (float) (10 - droprate))
@@ -160,13 +160,13 @@ module NeuralLayers =
  
      override this.setTimeStep x = cur_time <- x
      override this.WeightsSize = 0
-     override this.setWeight x y = ignore(None)
-     override this.getWeight i  = 0.0
+     override this.setWeight _ _ = ignore(None)
+     override this.getWeight _ = 0.0
      override this.gradSize() = 0
      override this.Size() = noutputs
      //override this.GradientNeuron (target:float array) = 
   
-     override this.BackpropError (grad:float array) = 
+     override this.BackpropError (_:float array) = 
       Array.init berror_buffer.Length (fun i -> berror_buffer.[i])
  
      override this.ComputeEval() = 
@@ -181,7 +181,7 @@ module NeuralLayers =
          this.Outputs.[i] <- 0.0 
          this.DropPattern.[i] <- 0.0      
   
-     override this.Gradient a b c = 
+     override this.Gradient _ _ _ = 
       [||]
   
      override this.LastResult = this.Outputs
@@ -212,10 +212,10 @@ module NeuralLayers =
     ///implements one dimensional k-max pooling for simple text processing convnets
     type Maxpooling1DLayer(maxinputs:int,npooling:int) =
      inherit  NeuralLayer(maxinputs,npooling)
-     let inputs =     Array.init 440 (fun i -> Array.init maxinputs (fun x -> 0.0))
-     let outputs =  Array.init 440 (fun i -> Array.init npooling (fun x -> 0.0))
-     let indexes =  Array.init 440 (fun i -> Array.init npooling (fun x -> 0))
-     let berror_buffer = Array.init npooling (fun x -> 0.0)
+     let inputs =     Array.init 440 (fun _ -> Array.init maxinputs (fun _ -> 0.0))
+     let outputs =  Array.init 440 (fun _ -> Array.init npooling (fun _ -> 0.0))
+     let indexes =  Array.init 440 (fun _ -> Array.init npooling (fun _ -> 0))
+     let berror_buffer = Array.init npooling (fun _ -> 0.0)
      let mutable cur_time = 0
      ///Provides access to current outputs array using current timestep
      member this.Outputs = outputs.[cur_time]
@@ -227,22 +227,22 @@ module NeuralLayers =
  
      override this.setTimeStep x = cur_time <- x
      override this.WeightsSize = 0
-     override this.setWeight x y = ignore(None)
-     override this.getWeight i  = 0.0
+     override this.setWeight _ _ = ignore(None)
+     override this.getWeight _ = 0.0
      override this.gradSize() = 0
      override this.Size() = npooling
  
  
      override this.ComputeEval() =  
        let nout = Array.mapi (fun i x -> (x,i)) (this.Inputs)
-       let nsorted =nout |> Array.sortBy (fun (x,i) -> 0.0 - (Math.Abs x)) 
+       let nsorted =nout |> Array.sortBy (fun (x,_) -> 0.0 - (Math.Abs x)) 
        let kmax = nsorted.[0..(npooling-1)]
        for i = 0 to this.Outputs.Length - 1 do
         this.Outputs.[i] <- (fst kmax.[i])
         this.Indexes.[i] <- (snd kmax.[i])
      //  Console.WriteLine ("fds" + ((this.Outputs.[i]).ToString()))
  
-     override this.Gradient a b c = 
+     override this.Gradient _ _ _ = 
       [||]
   
      override this.LastResult = this.Outputs
@@ -280,15 +280,15 @@ module NeuralLayers =
         value <- berror_buffer.[i]
       value
  
-     override this.BackpropError (grad:float array) = 
+     override this.BackpropError (_:float array) = 
       Array.init this.Inputs.Length (fun i ->  (this.ValueByIndex i)) 
   
     ///Neural network layer that adds gaussian noise to input values
     type NoiseLayer(ninputs:int,noutputs:int,noiseLevel:float) =
      inherit  NeuralLayer(ninputs,noutputs)
-     let inputs =     Array.init 440 (fun i -> Array.init ninputs (fun x -> 0.0))
-     let outputs =  Array.init 440 (fun i -> Array.init noutputs (fun x -> 0.0))
-     let berror_buffer = Array.init ninputs (fun x -> 0.0)
+     let inputs =     Array.init 440 (fun _ -> Array.init ninputs (fun _ -> 0.0))
+     let outputs =  Array.init 440 (fun _ -> Array.init noutputs (fun _ -> 0.0))
+     let berror_buffer = Array.init ninputs (fun _ -> 0.0)
      let mutable cur_time = 0
      ///Provides access to current outputs array using current timestep
      member this.Outputs = outputs.[cur_time]
@@ -300,15 +300,15 @@ module NeuralLayers =
  
      override this.setTimeStep x = cur_time <- x
      override this.WeightsSize = 0
-     override this.setWeight x y = ignore(None)
-     override this.getWeight i  = 0.0
+     override this.setWeight _ _ = ignore(None)
+     override this.getWeight _  = 0.0
      override this.gradSize() = 0
      override this.Size() = noutputs
      override this.GradientNeuron (target:float array) = 
       for i = 0 to target.Length - 1 do
        berror_buffer.[i] <- target.[i]
       [||]
-     override this.BackpropError (grad:float array) = 
+     override this.BackpropError (_:float array) = 
       Array.init berror_buffer.Length (fun i -> berror_buffer.[i])
  
      override this.ComputeEval() = 
@@ -320,7 +320,7 @@ module NeuralLayers =
         this.Outputs.[i] <- proc_inputs.[i] + nval
       
   
-     override this.Gradient a b c = 
+     override this.Gradient _ _ _ = 
       [||]
   
      override this.LastResult = this.Outputs
@@ -345,9 +345,9 @@ module NeuralLayers =
     type CopyLayer(ninputs:int) =
      inherit  NeuralLayer(ninputs,ninputs)
      let noutputs = ninputs
-     let inputs =     Array.init 440 (fun i -> Array.init ninputs (fun x -> 0.0))
-     let outputs =  Array.init 440 (fun i -> Array.init noutputs (fun x -> 0.0))
-     let berror_buffer = Array.init ninputs (fun x -> 0.0)
+     let inputs =     Array.init 440 (fun _ -> Array.init ninputs (fun _ -> 0.0))
+     let outputs =  Array.init 440 (fun _ -> Array.init noutputs (fun _ -> 0.0))
+     let berror_buffer = Array.init ninputs (fun _ -> 0.0)
      let mutable cur_time = 0
      member this.Outputs = outputs.[cur_time]
      member this.Inputs = inputs.[cur_time]
@@ -355,8 +355,8 @@ module NeuralLayers =
  
      override this.setTimeStep x = cur_time <- x
      override this.WeightsSize = 0
-     override this.setWeight x y = ignore(None)
-     override this.getWeight i  = 0.0
+     override this.setWeight _ _ = ignore(None)
+     override this.getWeight _  = 0.0
      override this.gradSize() = 0
      override this.Size() = noutputs
  
@@ -365,7 +365,7 @@ module NeuralLayers =
        berror_buffer.[i] <- target.[i]
       [||]
  
-     override this.BackpropError (grad:float array) = 
+     override this.BackpropError (_:float array) = 
       let p = Array.init berror_buffer.Length (fun i -> berror_buffer.[i])
       p
      // Console.WriteLine ( p |> Array.map (fun x -> x.ToString() + " ") |> Array.fold (+) "")
@@ -378,7 +378,7 @@ module NeuralLayers =
        this.Outputs.[i] <- proc_inputs.[i] 
       
   
-     override this.Gradient a b c = 
+     override this.Gradient _ _ _ = 
       [||]
   
      override this.LastResult = this.Outputs
@@ -408,12 +408,12 @@ module NeuralLayers =
     type FullyConnectedLayer(ninputs:int,noutputs:int) =
      inherit  NeuralLayer(ninputs,noutputs) 
     // let weights = Array.init (noutputs*(ninputs+1)) (fun x -> (rnd.NextDouble() * 0.5) - 0.25)        
-     let weights = Array.init (noutputs*(ninputs+1)) (fun x -> (rnd.NextDouble() * 0.2) - 0.1)        
+     let weights = Array.init (noutputs*(ninputs+1)) (fun _ -> (rnd.NextDouble() * 0.2) - 0.1)        
 
-     let outputs =  Array.init 110 (fun x -> Array.init noutputs (fun x -> 0.0))
-     let proc_inputs = Array.init 110 (fun x -> Array.init (ninputs + 1) (fun x -> 1.0))
-     let ngrad = Array.init  (noutputs * (ninputs + 1))  (fun x -> 0.0)
-     let null_data = Array.init (noutputs) (fun x -> 0.2)
+     let outputs =  Array.init 110 (fun _ -> Array.init noutputs (fun _ -> 0.0))
+     let proc_inputs = Array.init 110 (fun _ -> Array.init (ninputs + 1) (fun _ -> 1.0))
+     let ngrad = Array.init  (noutputs * (ninputs + 1))  (fun _ -> 0.0)
+     let null_data = Array.init (noutputs) (fun _ -> 0.2)
 
      let mutable cur_time = 0
      ///Provides access to array of layer weights
@@ -492,7 +492,7 @@ module NeuralLayers =
       start_profile "unified back error"
       let nsize = pins.Length
 
-      let berror =  Array.init  (nsize - 1)  (fun x -> 0.0)
+      let berror =  Array.init  (nsize - 1)  (fun _ -> 0.0)
   
       for j = 0 to grad_neuron.Length - 1 do
        let w =  j * pins.Length
@@ -533,9 +533,9 @@ module NeuralLayers =
 
       start_profile("mult")
       //input multiply
-      let mutable x = 0
-      let t =  proc_inputs.Length
-      let t1 =  proc_inputs.Length - 1
+      //let mutable x = 0
+      //let t =  proc_inputs.Length
+      //let t1 =  proc_inputs.Length - 1
       dgemv_cpu weights proc_inputs outputs
     
     //  Native.vect_mat_dgemv  weights proc_inputs outputs
@@ -756,7 +756,7 @@ module NeuralLayers =
        start_profile "conv-net BackpropError"
        let nsize = pins.Length
 
-       let berror =  Array.init  (nsize - 1)  (fun x -> 0.0)
+       let berror =  Array.init  (nsize - 1)  (fun _ -> 0.0)
   
        for j = 0 to grad_neuron.Length - 1 do
         let mutable w = 0
@@ -846,7 +846,7 @@ module NeuralLayers =
        let pins = this.Inputs
        start_profile "softmax general_gradient_compute"
 
-       let mutable i = windex
+       //let mutable i = windex
        for j = 0 to step_size - 1 do 
         grad_buffer.[j+windex] <- 0.0
    
@@ -861,9 +861,9 @@ module NeuralLayers =
        grad_buffer
    
      override this.BackpropError (grad_neuron:float array) =
-       let pins = this.Inputs
+       //let pins = this.Inputs
        start_profile "conv-net BackpropError"
-       let nsize = pins.Length
+       //let nsize = pins.Length
 
        let outputs_size_x =(input_x / step_size) - ((filter_x /step_size) - 1)
        let outputs_size_y =(input_y / step_size) - ((filter_y / step_size) - 1)
@@ -887,7 +887,7 @@ module NeuralLayers =
      //let mutable act_derivative = derivative_relU
  
  
-     let mutable renorm = false
+     //let mutable renorm = false
  
      member private this.renormalize () = 
       let outputs = this.Outputs
@@ -958,7 +958,7 @@ module NeuralLayers =
    ///Recurrent layer for implementing Elman-type RNNs
     type RecurrentLayer(ninputs:int,noutputs:int) =
      inherit  PerceptronLayer(ninputs,noutputs)
-     let berror_buffer = Array.init 440 (fun x -> Array.init noutputs (fun x -> 0.0))
+     let berror_buffer = Array.init 440 (fun _ -> Array.init noutputs (fun _ -> 0.0))
  
  
      (*override this.SetInput x =
@@ -973,7 +973,7 @@ module NeuralLayers =
       let t1 = ninputs - 1
       for i =0 to noutputs - 1 do
       // let x = i * (proc_inputs.Length)
-       let mutable kx = 0.0
+       //let mutable kx = 0.0
        for j = x + (ninputs-noutputs) to x + t1 do
         if j-x <> i then this.Weights.[j] <- 0.0 else this.Weights.[j] <- this.Weights.[j] / 2.0
 
@@ -1013,15 +1013,15 @@ module NeuralLayers =
     type ProjectionLayer (index_size:int,pass_throw_size:int,project_size:int) =
      inherit NeuralLayer(1 + pass_throw_size,project_size + pass_throw_size)
  
-     let mutable activation = tanh_func
+     //let mutable activation = tanh_func
      let mutable act_derivative = derivative_tanh
  
      //let projections = Array.init index_size (fun x -> (Array.init project_size (fun x -> (rnd.NextDouble() * 0.2) - 0.1)))
  
-     let projections = Array.init index_size (fun x -> (Array.init project_size (fun x -> 0.0)))
+     let projections = Array.init index_size (fun _ -> (Array.init project_size (fun _ -> 0.0)))
  
-     let outputs = Array.init 450 (fun x -> Array.init (project_size+pass_throw_size) (fun x -> 0.0))
-     let inputs = Array.init 450 (fun x -> Array.init (1 + pass_throw_size) (fun x -> 0.0))
+     let outputs = Array.init 450 (fun _ -> Array.init (project_size+pass_throw_size) (fun _ -> 0.0))
+     let inputs = Array.init 450 (fun _ -> Array.init (1 + pass_throw_size) (fun _ -> 0.0))
      let mutable cur_time = 0
      member this.Outputs = outputs.[cur_time]
      member this.Inputs = inputs.[cur_time]
@@ -1117,13 +1117,13 @@ module NeuralLayers =
    
        grad_buffer
 
-     override this.BackpropError (grad_neuron:float array) =
+     override this.BackpropError (_:float array) =
       start_profile "project - bpe"
    
       let proc_input = this.Inputs
       let nsize = proc_input.Length
 
-      let berror =  Array.init  (nsize - 1)  (fun x -> 0.0)
+      let berror =  Array.init  (nsize - 1)  (fun _ -> 0.0)
       end_profile "project - bpe"
       berror
   
